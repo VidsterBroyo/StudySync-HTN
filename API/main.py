@@ -5,6 +5,8 @@ import cohere
 import re
 from flask import Flask, request, jsonify
 from openai import OpenAI
+import requests
+import io
 
 # /Users/manveersohal/Documents/GitHub/group-study-app-htn/.venv/bin/python -m pip install flask 
 
@@ -216,6 +218,108 @@ def start_transcription(audio_file):
     print(transcription.text)
     return transcription.text
 
+########################
+########################
+########################
+
+
+import cv2
+import requests
+import io
+import os
+
+def transcribe(video_chunk):
+    # API URL
+    url = "https://symphoniclabs--symphonet-vsr-modal-htn-model-upload-static-htn.modal.run"
+
+    # Convert video chunk to BytesIO
+    video_io = io.BytesIO(video_chunk)
+
+    # Send POST request with the video chunk
+    response = requests.post(url, files={'video': ('input.mp4', video_io, 'video/mp4')})
+    print(response.text)
+    # Return the transcription result
+    return response.text
+
+
+
+# Assuming video.mp4 exists
+
+def balls(file_path):
+ 
+    url = "https://symphoniclabs--symphonet-vsr-modal-htn-model-upload-static-htn.modal.run"
+
+    with open(file_path, 'rb') as video_file:
+        video = io.BytesIO(video_file.read())
+
+    response = requests.post(url, files={'video': ('input.mp4', video, 'video/mp4')})
+
+    return(response.text)
+
+
+#print(balls("test.mp4"))
+
+def capture_and_transcribe_live():
+    # OpenCV video capture
+    cap = cv2.VideoCapture(1)  # 0 is usually the default webcam
+
+    # Check if webcam opened successfully
+    if not cap.isOpened():
+        print("Error: Could not open webcam.")
+        return
+
+    # Codec and chunk properties
+    fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # mp4 format
+    chunk_duration = 5  # seconds of video per chunk
+    frame_rate = 20  # Frames per second (FPS)
+
+    while True:
+        ret, frame = cap.read()
+        if not ret:
+            print("Error: Could not read frame.")
+            break
+
+        # Display the webcam feed
+        cv2.imshow('Webcam Feed', frame)
+
+        # Save the video chunk
+        chunk_file = "temp_chunk.mp4"
+        out = cv2.VideoWriter(chunk_file, fourcc, frame_rate, (frame.shape[1], frame.shape[0]))
+        frame_count = 0
+        total_frames = int(chunk_duration * frame_rate)
+
+        # Write frames to file for a specified duration (chunk_duration)
+        while frame_count < total_frames:
+            ret, frame = cap.read()
+            if not ret:
+                break
+            out.write(frame)
+            frame_count += 1
+
+        out.release()  # Save the chunk
+        
+        # Send video chunk to transcription API
+        with open(chunk_file, 'rb') as f:
+            video_chunk = f.read()
+            transcription = transcribe(video_chunk)
+            print("Transcription:", transcription)
+
+        # Delete the temporary video chunk file
+        os.remove(chunk_file)
+
+        # Break loop when 'q' is pressed
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+
+    # Release the webcam and close OpenCV windows
+    cap.release()
+    cv2.destroyAllWindows()
+
+
+# Run the live transcription
+#capture_and_transcribe_live()
+
+########################
 
 
 
@@ -250,15 +354,18 @@ def upload():
 
 
 # API endpoint to receive audio file
-@app.route('/make_quiz')
+@app.route('/make_quiz', methods=['POST'])
 def quiz():
+    data = request.get_json()
+    transcript = data.transcript
     # function calls
-    #bullet_points = text_to_bullet_list(text)
+    #bullet_points = text_to_bullet_list(transcript)
 
     #expensice call i guess
     #quiz_prompt = bullet_list_to_quiz(bullet_points)
     final = format_quiz(quiz_prompt)
-    return(f"<p>{for_fun(final)}</p>")
+    
+    return jsonify({'quiz': final})
 
 
 if __name__ == '__main__':
