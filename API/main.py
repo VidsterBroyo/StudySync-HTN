@@ -6,13 +6,16 @@ import re
 from flask import Flask, request, jsonify
 from openai import OpenAI
 
-# /Users/manveersohal/Documents/GitHub/group-study-app-htn/.venv/bin/python -m pip install flask 
+from flask_cors import CORS
+
 
 QUESTION_PATTERN = r"^(\d+\.\s.+?[.?]$)"  # Match the question
 OPTION_PATTERN = r"([A-D]\.\s.*)"  # Match each option
 ANSWER_MATCH = r"(\d+\.\s*[A-D]:\s*(.+))" #Match the answer
 
 app = Flask(__name__)
+CORS(app)
+
 quiz_prompt="""Generated Quiz:
 
 
@@ -230,9 +233,11 @@ def upload():
     # If the user does not select a file
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
+
     
-#elijah
     print("got the file!", request.files['file'])
+
+    
 
     # Save the file to a directory (if needed)
     #file_path = os.path.join('uploads', file.filename)
