@@ -20,7 +20,10 @@ import {
     ModalHeader,
     ModalCloseButton,
     ModalBody,
-    useDisclosure
+    ModalFooter,
+    useDisclosure,
+    Switch,
+    Spinner // Import Spinner
 } from "@chakra-ui/react";
 
 function Group() {
@@ -32,9 +35,16 @@ function Group() {
     const [transcribedText, setTranscribedText] = useState(""); // State for transcribed text
     const [notes, setNotes] = useState([]); // State for notes
     const [selectedNote, setSelectedNote] = useState(null); // State for selected note
+    const [isUploading, setIsUploading] = useState(false); // Loading state for upload
+    const [isVideoMode, setIsVideoMode] = useState(false); // State to toggle between audio and video mode
+    const [isRecording, setIsRecording] = useState(false); // State for recording status
+    const [recordedBlob, setRecordedBlob] = useState(null); // State for recorded video blob
+    const [mediaStream, setMediaStream] = useState(null); // Store the media stream
     const { isOpen, onOpen, onClose } = useDisclosure(); // Modal controls
     const toast = useToast();
     const fileInputRef = useRef(null);
+    const mediaRecorderRef = useRef(null);
+    const videoRef = useRef(null); // Ref for the video element
 
     // get group name on first render
     function getGroupName() {
@@ -74,7 +84,11 @@ function Group() {
     }, [groupName]);
 
     const onFileChange = (event) => {
-        setSelectedFile(event.target.files[0]);
+        if (isVideoMode) {
+            setSelectedVideo(event.target.files[0]);
+        } else {
+            setSelectedFile(event.target.files[0]);
+        }
         setIsFileUploaded(true); // Mark file as uploaded
     };
 
@@ -87,7 +101,11 @@ function Group() {
         event.preventDefault();
         event.stopPropagation();
         if (event.dataTransfer.files.length > 0) {
-            setSelectedFile(event.dataTransfer.files[0]);
+            if (isVideoMode) {
+                setSelectedVideo(event.dataTransfer.files[0]);
+            } else {
+                setSelectedFile(event.dataTransfer.files[0]);
+            }
             setIsFileUploaded(true); // Mark file as uploaded
         }
     };
@@ -96,10 +114,6 @@ function Group() {
         if (fileInputRef.current) {
             fileInputRef.current.click();
         }
-    };
-
-    const onVideoChange = (event) => {
-        setSelectedVideo(event.target.files[0]);
     };
 
     const onVideoUpload = async () => {
@@ -112,11 +126,14 @@ function Group() {
             });
             return;
         }
+
+        setIsUploading(true); // Set loading state to true
+
         const formData = new FormData();
         formData.append('video', selectedVideo);
         try {
             const response = await fetch(
-                "https://symphoniclabs--symphonet-vsr-modal-model-upload-static.modal.run",
+                "https://symphoniclabs--symphonet-vsr-modal-htn-model-upload-static-htn.modal.run",
                 {
                     method: "POST",
                     body: formData,
@@ -126,12 +143,23 @@ function Group() {
                 const data = await response.text();
                 console.log("Transcription result:", data);
                 setTranscribedText(data);
+                // After uploading the file, add the note
+                console.log("Making the request to add the note...");
+                await axios.post(`http://localhost:3001/lectures/${encodeURIComponent(groupName)}`, {
+                    title: lectureTitle,
+                    notes: data // Assuming the response data contains the content for the note
+                });
+                console.log("Note added successfully");
+
+                // Refresh the notes
+                loadNotes();
                 toast({
                     title: 'Video uploaded and transcribed successfully',
                     status: 'success',
                     duration: 3000,
                     isClosable: true,
                 });
+
                 setSelectedVideo(null);
             } else {
                 throw new Error("Failed to transcribe the video");
@@ -145,13 +173,15 @@ function Group() {
                 isClosable: true,
             });
             console.error("Error transcribing video:", error);
+        } finally {
+            setIsUploading(false); // Reset loading state
         }
     };
 
     const onFileUpload = async () => {
-        if (!selectedFile || !lectureTitle) { // Check if title and file are provided
+        if (!lectureTitle) { // Check if title is provided
             toast({
-                title: 'Missing title or file',
+                title: 'Missing title',
                 status: 'warning',
                 duration: 3000,
                 isClosable: true,
@@ -159,9 +189,36 @@ function Group() {
             return;
         }
 
+        setIsUploading(true); // Set loading state to true
+
         const formData = new FormData();
-        formData.append('file', selectedFile);
-        formData.append('title', lectureTitle); // Include lecture title in the form data
+        if (isVideoMode) {
+            if (!selectedVideo) { // Check if video is selected
+                toast({
+                    title: 'Missing video file',
+                    status: 'warning',
+                    duration: 3000,
+                    isClosable: true,
+                });
+                setIsUploading(false); // Reset loading state
+                return;
+            }
+            formData.append('file', selectedVideo);
+            formData.append('title', lectureTitle); // Include lecture title in the form data
+        } else {
+            if (!selectedFile) { // Check if file is selected
+                toast({
+                    title: 'Missing audio file',
+                    status: 'warning',
+                    duration: 3000,
+                    isClosable: true,
+                });
+                setIsUploading(false); // Reset loading state
+                return;
+            }
+            formData.append('file', selectedFile);
+            formData.append('title', lectureTitle); // Include lecture title in the form data
+        }
 
         try {
             const response = await axios.post('http://localhost:5000/upload', formData, {
@@ -191,6 +248,7 @@ function Group() {
 
             // Reset the form
             setSelectedFile(null);
+            setSelectedVideo(null);
             setLectureTitle("");
             setIsFileUploaded(false);
 
@@ -202,12 +260,73 @@ function Group() {
                 duration: 3000,
                 isClosable: true,
             });
+        } finally {
+            setIsUploading(false); // Reset loading state
         }
     };
 
     const handleNoteClick = (note) => {
         setSelectedNote(note);
         onOpen(); // Open the modal
+    };
+
+    const handleQuizMeClick = () => {
+        console.log("call api"); // Log to console or call API as needed
+    };
+
+
+
+
+    const startRecording = async () => {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+            setMediaStream(stream);
+
+            // Set the video source to the media stream
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+                videoRef.current.play();
+            }
+
+            const mediaRecorder = new MediaRecorder(stream);
+            mediaRecorderRef.current = mediaRecorder;
+            const chunks = [];
+            mediaRecorder.ondataavailable = (event) => chunks.push(event.data);
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(chunks, { type: 'video/webm' });
+                setRecordedBlob(blob);
+                stream.getTracks().forEach(track => track.stop()); // Stop all tracks
+            };
+            mediaRecorder.start();
+            setIsRecording(true);
+        } catch (error) {
+            console.error("Error accessing webcam:", error);
+            toast({
+                title: 'Failed to start recording',
+                description: error.message,
+                status: 'error',
+                duration: 3000,
+                isClosable: true,
+            });
+        }
+    };
+
+    const stopRecording = () => {
+        if (mediaRecorderRef.current) {
+            mediaRecorderRef.current.stop();
+            setIsRecording(false);
+        }
+    };
+
+    const downloadRecording = () => {
+        if (recordedBlob) {
+            const url = URL.createObjectURL(recordedBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'recording.webm';
+            a.click();
+            URL.revokeObjectURL(url);
+        }
     };
 
     return (
@@ -246,14 +365,15 @@ function Group() {
             </Box>
             <Flex direction="column" flex="1" bg="background" p={5}>
                 <Box mb={7}>
-                    <Box p={4} width="50%">
+                    <Box p={4} width="100%">
                         <Heading size="lg" mb={4}>Notes</Heading>
                         {notes.length > 0 ? (
-                            <Wrap spacing={"20px"} mt={4}>
+                            <Wrap spacing={"10px"} mt={4}>
                                 {notes.map((note, index) => (
                                     <WrapItem key={index} p={3} borderRadius="md">
                                         <Box
-                                            height="100px"
+                                            height="150px"
+                                            width="150px"
                                             bg="secondBackground"
                                             onClick={() => handleNoteClick(note)}
                                             cursor="pointer"
@@ -298,8 +418,22 @@ function Group() {
                                 placeholder="Enter lecture title"
                             />
                         </FormControl>
+
+                        {/* Toggle Switch */}
+                        <FormControl mb={4}>
+                            <FormLabel>Mode</FormLabel>
+                            <Flex align="center">
+                                <Text mr={2}>Audio</Text>
+                                <Switch
+                                    isChecked={isVideoMode}
+                                    onChange={() => setIsVideoMode(!isVideoMode)}
+                                />
+                                <Text ml={2}>Video</Text>
+                            </Flex>
+                        </FormControl>
+
                         <FormControl>
-                            <FormLabel>Upload lecture recording!</FormLabel>
+                            <FormLabel>{isVideoMode ? 'Upload video file!' : 'Upload audio file!'}</FormLabel>
                             <Flex
                                 direction="column"
                                 align="center"
@@ -321,17 +455,78 @@ function Group() {
                                     ref={fileInputRef}
                                     onChange={onFileChange}
                                     display="none"
-                                    accept="audio/mp3"
+                                    accept={isVideoMode ? 'video/mp4, video/webm' : 'audio/mp3'}
                                 />
                                 <Box
                                     as="span"
                                     fontSize="md"
                                     color="gray.600"
                                 >
-                                    {selectedFile ? selectedFile.name : 'Drag & drop your file here, or click to select'}
+                                    {isVideoMode ?
+                                        (selectedVideo ? selectedVideo.name : 'Drag & drop your video here, or click to select') :
+                                        (selectedFile ? selectedFile.name : 'Drag & drop your file here, or click to select')}
                                 </Box>
                             </Flex>
                         </FormControl>
+
+                        {isVideoMode && (
+                            <Flex direction="column" align="center" mt={4}>
+                                <Box width="100%" mb={4}>
+                                    <video
+                                        ref={videoRef}
+                                        width="100%"
+                                        height="auto"
+                                        style={{ border: '1px solid black', borderRadius: '8px' }}
+                                        autoPlay
+                                        muted
+                                    />
+                                </Box>
+                                {!isRecording ? (
+                                    <Button
+                                        colorScheme="teal"
+                                        size="lg"
+                                        fontSize="lg"
+                                        px={8}
+                                        py={6}
+                                        boxShadow="md"
+                                        _hover={{ boxShadow: 'lg', transform: 'scale(1.05)' }}
+                                        onClick={startRecording}
+                                    >
+                                        Start Recording
+                                    </Button>
+                                ) : (
+                                    <Button
+                                        colorScheme="red"
+                                        size="lg"
+                                        fontSize="lg"
+                                        px={8}
+                                        py={6}
+                                        boxShadow="md"
+                                        _hover={{ boxShadow: 'lg', transform: 'scale(1.05)' }}
+                                        onClick={stopRecording}
+                                    >
+                                        Stop Recording
+                                    </Button>
+                                )}
+
+                                {recordedBlob && (
+                                    <Button
+                                        colorScheme="blue"
+                                        size="lg"
+                                        fontSize="lg"
+                                        px={8}
+                                        py={6}
+                                        boxShadow="md"
+                                        _hover={{ boxShadow: 'lg', transform: 'scale(1.05)' }}
+                                        onClick={downloadRecording}
+                                        mt={4}
+                                    >
+                                        Download Recording
+                                    </Button>
+                                )}
+                            </Flex>
+                        )}
+
                         <Flex direction="column" align="center" mt={4}>
                             <Button
                                 colorScheme="teal"
@@ -341,37 +536,12 @@ function Group() {
                                 py={6}
                                 boxShadow="md"
                                 _hover={{ boxShadow: 'lg', transform: 'scale(1.05)' }}
-                                onClick={onFileUpload}
+                                onClick={isVideoMode ? onVideoUpload : onFileUpload}
                                 mb={4}
+                                isDisabled={isUploading} // Disable button while uploading
                             >
-                                Upload
+                                {isUploading ? <Spinner size="md" /> : (isVideoMode ? "Upload Video" : "Upload Audio")} {/* Show spinner when uploading */}
                             </Button>
-                            <Box
-                                bg="gray.200"
-                                p={4}
-                                borderRadius="md"
-                                width="100%"
-                                maxWidth="400px"
-                                mx="auto"
-                                textAlign="center"
-                                boxShadow="md"
-                            >
-                                <Box mb={4} fontSize="md" color="gray.700">
-                                    Want to test your knowledge?
-                                </Box>
-                                <Button
-                                    colorScheme={isFileUploaded ? "blue" : "gray"}
-                                    size="lg"
-                                    fontSize="lg"
-                                    px={8}
-                                    py={6}
-                                    boxShadow="md"
-                                    _hover={{ boxShadow: 'lg', transform: 'scale(1.05)' }}
-                                    isDisabled={!isFileUploaded}
-                                >
-                                    QUIZ ME!
-                                </Button>
-                            </Box>
                         </Flex>
                     </Box>
                 </Box>
@@ -381,14 +551,17 @@ function Group() {
                 Footer
             </Box>
 
-            <Modal isOpen={isOpen} onClose={onClose} size="lg"> {/* Use size prop for predefined sizes */}
+            <Modal isOpen={isOpen} onClose={onClose} size="lg">
                 <ModalOverlay />
-                <ModalContent maxWidth="80vw" width="80vw"> {/* Adjust width as needed */}
+                <ModalContent maxWidth="80vw" width="80vw">
                     <ModalHeader>Note Details</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
                         <Text>{selectedNote?.notes}</Text>
                     </ModalBody>
+                    <ModalFooter>
+                        <Button colorScheme="blue" onClick={handleQuizMeClick}>Quiz Me</Button>
+                    </ModalFooter>
                 </ModalContent>
             </Modal>
         </Flex>

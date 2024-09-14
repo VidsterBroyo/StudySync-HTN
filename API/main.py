@@ -343,7 +343,7 @@ def upload():
     
     print("got the file!", request.files['file'])
 
-    temp_file_path = os.path.join("/tmp", file.filename)
+    temp_file_path = os.path.join("", file.filename)
     file.save(temp_file_path)
 
     # Save the file to a directory (if needed)
@@ -366,10 +366,10 @@ def quiz():
     data = request.get_json()
     transcript = data.transcript
     # function calls
-    #bullet_points = text_to_bullet_list(transcript)
+    bullet_points = text_to_bullet_list(transcript)
 
     #expensice call i guess
-    #quiz_prompt = bullet_list_to_quiz(bullet_points)
+    quiz_prompt = bullet_list_to_quiz(bullet_points)
     final = format_quiz(quiz_prompt)
     
     return jsonify({'quiz': final})
