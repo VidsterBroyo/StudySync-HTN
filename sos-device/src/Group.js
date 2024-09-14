@@ -19,7 +19,9 @@ import {
     ModalHeader,
     ModalCloseButton,
     ModalBody,
-    useDisclosure
+    ModalFooter,
+    useDisclosure,
+    Spinner // Import Spinner
 } from "@chakra-ui/react";
 
 function Group() {
@@ -31,6 +33,7 @@ function Group() {
     const [transcribedText, setTranscribedText] = useState(""); // State for transcribed text
     const [notes, setNotes] = useState([]); // State for notes
     const [selectedNote, setSelectedNote] = useState(null); // State for selected note
+    const [isUploading, setIsUploading] = useState(false); // Loading state for upload
     const { isOpen, onOpen, onClose } = useDisclosure(); // Modal controls
     const toast = useToast();
     const fileInputRef = useRef(null);
@@ -158,6 +161,8 @@ function Group() {
             return;
         }
 
+        setIsUploading(true); // Set loading state to true
+
         const formData = new FormData();
         formData.append('file', selectedFile);
         formData.append('title', lectureTitle); // Include lecture title in the form data
@@ -201,12 +206,18 @@ function Group() {
                 duration: 3000,
                 isClosable: true,
             });
+        } finally {
+            setIsUploading(false); // Reset loading state
         }
     };
 
     const handleNoteClick = (note) => {
         setSelectedNote(note);
         onOpen(); // Open the modal
+    };
+
+    const handleQuizMeClick = () => {
+        console.log("call api"); // Log to console or call API as needed
     };
 
     return (
@@ -342,8 +353,9 @@ function Group() {
                                 _hover={{ boxShadow: 'lg', transform: 'scale(1.05)' }}
                                 onClick={onFileUpload}
                                 mb={4}
+                                isDisabled={isUploading} // Disable button while uploading
                             >
-                                Upload
+                                {isUploading ? <Spinner size="md" /> : "Upload"} {/* Show spinner when uploading */}
                             </Button>
                             <Box
                                 bg="gray.200"
@@ -380,14 +392,19 @@ function Group() {
                 Footer
             </Box>
 
-            <Modal isOpen={isOpen} onClose={onClose} size="lg"> {/* Use size prop for predefined sizes */}
+            <Modal isOpen={isOpen} onClose={onClose} size="lg">
                 <ModalOverlay />
-                <ModalContent maxWidth="80vw" width="80vw"> {/* Adjust width as needed */}
+                <ModalContent maxWidth="80vw" width="80vw">
                     <ModalHeader>Note Details</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
                         <Text>{selectedNote?.notes}</Text>
                     </ModalBody>
+                    <ModalFooter>
+                        <Button colorScheme="blue" onClick={handleQuizMeClick}>
+                            Quiz Me!
+                        </Button>
+                    </ModalFooter>
                 </ModalContent>
             </Modal>
         </Flex>
