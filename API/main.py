@@ -11,6 +11,49 @@ OPTION_PATTERN = r"([A-D]\.\s.*)"  # Match each option
 ANSWER_MATCH = r"(\d+\.\s*[A-D]:\s*(.+))" #Match the answer
 
 app = Flask(__name__)
+quiz_prompt="""Generated Quiz:
+
+
+
+1. What is the base of ice cream?
+A. Milk
+B. Water
+C. Juice
+D. Nitrogen
+
+2. What is the most common flavor of ice cream?
+A. Strawberry
+B. Vanilla
+C. Chocolate
+D. Ginger
+
+3. What is the purpose of adding sweeteners, spices, fruits, and stabilizers to the ice cream base?
+A. To make the ice cream healthier
+B. To make the ice cream taste and feel better
+C. To make the ice cream sweeter
+D. To make the ice cream last longer
+
+4. Who is the ideal ice cream consumer?
+A. People with dairy allergies or vegans
+B. People with gluten allergies or vegetarians
+C. People with sweet teeth
+D. People with sour teeth
+
+5. Which of the following milks can be used in ice cream?
+A. Cow's milk
+B. Almond milk
+C. Oat milk
+D. All of the above
+
+### Answers
+
+1. A: Milk
+2. B: Vanilla
+3. B: To make the ice cream taste and feel better
+4. A: People with dairy allergies or vegans
+5. D: All of the above 
+
+ hope these answers are what you're looking for! Let me know if you would like me to explain any of the answers in detail. """
 
 
 """
@@ -160,10 +203,10 @@ def for_fun(final):
 @app.route('/generate-quiz')
 def quiz():
     # function calls
-    bullet_points = text_to_bullet_list(text)
+    #bullet_points = text_to_bullet_list(text)
 
     #expensice call i guess
-    quiz_prompt = bullet_list_to_quiz(bullet_points)
+    #quiz_prompt = bullet_list_to_quiz(bullet_points)
 
     final = format_quiz(quiz_prompt)
     print(final)
