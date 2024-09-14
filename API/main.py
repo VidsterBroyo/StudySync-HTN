@@ -261,7 +261,6 @@ def balls(file_path):
     return(response.text)
 
 
-#print(balls("test.mp4"))
 
 def capture_and_transcribe_live():
     # OpenCV video capture
@@ -343,14 +342,14 @@ def upload():
     
     print("got the file!", request.files['file'])
 
-    temp_file_path = os.path.join("/tmp", file.filename)
+    temp_file_path = os.path.join("", file.filename)
+    print(temp_file_path)
     file.save(temp_file_path)
 
     # Save the file to a directory (if needed)
     #file_path = os.path.join('uploads', file.filename)
     #file.save(file_path)
     print(file.filename)
-    job_name = "TestTranscriptionJob"
     
     #audio file translated to transcript 
     response = start_transcription(temp_file_path)
