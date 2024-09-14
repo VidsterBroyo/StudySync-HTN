@@ -261,6 +261,7 @@ def balls(file_path):
     return(response.text)
 
 
+#print(balls("test.mp4"))
 
 def capture_and_transcribe_live():
     # OpenCV video capture
@@ -273,8 +274,8 @@ def capture_and_transcribe_live():
 
     # Codec and chunk properties
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')  # mp4 format
-    chunk_duration = 5  # seconds of video per chunk
-    frame_rate = 20  # Frames per second (FPS)
+    chunk_duration = 4  # seconds of video per chunk
+    frame_rate = 60  # Frames per second (FPS)
 
     while True:
         ret, frame = cap.read()
@@ -320,7 +321,7 @@ def capture_and_transcribe_live():
 
 
 # Run the live transcription
-#capture_and_transcribe_live()
+capture_and_transcribe_live()
 
 ########################
 
@@ -342,8 +343,7 @@ def upload():
     
     print("got the file!", request.files['file'])
 
-    temp_file_path = os.path.join("", file.filename)
-    print(temp_file_path)
+    temp_file_path = os.path.join("/tmp", file.filename)
     file.save(temp_file_path)
 
     # Save the file to a directory (if needed)
