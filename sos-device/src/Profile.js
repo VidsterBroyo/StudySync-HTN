@@ -18,6 +18,31 @@ function Profile() {
 
     return (
         <Flex minH="100vh" direction="column" bg="background">
+            <Box
+                    position="absolute"
+                    top={4}
+                    left={4}
+                    p={2}
+                    bg="gray.700"
+                    color="white"
+                    borderRadius="full"
+                    cursor="pointer"
+                    onClick={() => window.location.href = "/"}
+                    fontSize="2xl"
+                    fontWeight="bold"
+                    textAlign="center"
+                    width="40px"
+                    height="40px"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    _hover={{
+                        bg: 'gray.600', // Darker background on hover
+                        transform: 'scale(1.1)' // Slightly larger on hover
+                    }}
+                >
+                    &lt;
+                </Box>
             <Box mb={7} mt={5} ml={5} mr={5}>
                 <Heading
                     color="white"
@@ -31,7 +56,7 @@ function Profile() {
             <WrapItem>
                 <Box
                     bg="secondBackground"
-                    onClick={() => openGroup("History w/ Mr. Stefanik")}
+                    onClick={() => openGroup("Upload Your Lecture Recording Here!")}
                     cursor="pointer"
                     transition="all 0.3s ease-in-out"
                     boxShadow="0 4px 6px rgba(0, 0, 0, 0.1)"
