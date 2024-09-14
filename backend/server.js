@@ -1,46 +1,56 @@
-const express = require('express')
-const mongoose = require('mongoose')
-const app = express()
-app.use(express.json())
+const express = require('express');
+const { MongoClient } = require('mongodb');
+var cors = require('cors')
+const app = express();
+const port = 3001;
+
+// Connection URL
+const url = 'mongodb+srv://vidsterbroyo:VoeyVtqp750W39aR@studybuddymongo.ny5sq.mongodb.net/?retryWrites=true&w=majority&appName=StudyBuddyMongo';
+const dbName = 'StudyGroupLectures';
+
+// Middleware to parse JSON
+app.use(express.json());
 
 
-const PORT = process.env.PORT || 3001
+app.use(cors())
 
+// Route to get all documents from a collection based on groupName
+app.get('/lectures/:groupName', async (req, res) => {
+    const { groupName } = req.params;
 
-const uri = "mongodb+srv://vidsterbroyo:Du2y8XDVkfTNmo8d@studybuddymongo.ny5sq.mongodb.net/?retryWrites=true&w=majority&appName=StudyBuddyMongo";
-mongoose.connect(uri)
-    .then((result) => console.log('connected to db'))
-    .catch((err) => console.log(err))
+    if (!groupName) {
+        return res.status(400).json({ error: 'Group name is required' });
+    }
 
+    let client;
 
-app.set('view engine', 'ejs');
+    try {
+        client = await MongoClient.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
+        const db = client.db(dbName);
+        const collection = db.collection(groupName); // Access collection with name = groupName
 
-app.listen(3000);
+        const documents = await collection.find({}).toArray();
+        
+        if (documents.length === 0) {
+            return res.status(404).json({ message: 'No documents found' });
+        }
 
-
-// Create a MongoClient with a MongoClientOptions object to set the Stable API version
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  }
+        res.json(documents);
+    } catch (error) {
+        console.error('Error accessing MongoDB:', error);
+        res.status(500).json({ error: 'An error occurred while accessing the database' });
+    } finally {
+        if (client) {
+            client.close();
+        }
+    }
 });
 
 
+app.listen(port, () => {
+    console.log(`Server is running on http://localhost:${port}`);
+});
 
-async function run() {
-  try {
-    // Connect the client to the server	(optional starting in v4.7)
-    await client.connect();
-    // Send a ping to confirm a successful connection
-    await client.db("admin").command({ ping: 1 });
-    console.log("Pinged your deployment. You successfully connected to MongoDB!");
-  } finally {
-    // Ensures that the client will close when you finish/error
-    await client.close();
-  }
-}
-run().catch(console.dir);
+
 
 

@@ -31,7 +31,7 @@ function Profile() {
             <WrapItem>
                 <Box
                     bg="secondBackground"
-                    onClick={() => openGroup("History w/ Mr. Stefanik")}
+                    onClick={() => openGroup("History")}
                     cursor="pointer"
                     transition="all 0.3s ease-in-out"
                     boxShadow="0 4px 6px rgba(0, 0, 0, 0.1)"
