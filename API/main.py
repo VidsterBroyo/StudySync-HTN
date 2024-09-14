@@ -5,7 +5,6 @@ import cohere
 import re
 from flask import Flask, request, jsonify
 
-
 QUESTION_PATTERN = r"^(\d+\.\s.+?[.?]$)"  # Match the question
 OPTION_PATTERN = r"([A-D]\.\s.*)"  # Match each option
 ANSWER_MATCH = r"(\d+\.\s*[A-D]:\s*(.+))" #Match the answer
@@ -199,22 +198,6 @@ def for_fun(final):
         string =string + f"<p>{question.question}</p> <p>{question.options}</p> <p>answer, {question.answer} </p>"
 
     return string
-# API endpoint to receive audio file
-@app.route('/generate-quiz')
-def quiz():
-    # function calls
-    #bullet_points = text_to_bullet_list(text)
-
-    #expensice call i guess
-    #quiz_prompt = bullet_list_to_quiz(bullet_points)
-
-    final = format_quiz(quiz_prompt)
-    print(final)
-    return(f"<p>{for_fun(final)}</p>")
-
-
-if __name__ == '__main__':
-    app.run(debug=True)
 
 
 #below this is AWS API Wokr
@@ -236,8 +219,52 @@ def start_transcription(job_name, file_uri):
         print("AWS credentials not found. Make sure they are set properly.")
 
 
-# Example usage:
-job_name = "TestTranscriptionJob"
-file_uri = "The 10 Second Rule #shorts.mp3"
-start_transcription(job_name, file_uri)
+
+
+@app.route('/upload', methods=['POST'])
+def upload():
+    if'file' not in request.files:
+        return jsonify({'error': 'No file part in the request'}), 400
+    
+   
+    file = request.files['file']
+
+    # If the user does not select a file
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+    
+#elijah
+    print("got the file!", request.files['file'])
+
+    # Save the file to a directory (if needed)
+    #file_path = os.path.join('uploads', file.filename)
+    #file.save(file_path)
+    print(file.filename)
+    job_name = "TestTranscriptionJob"
+    
+    #audio file translated to transcript 
+    response = start_transcription(job_name,file.filename)
+
+    # Dummy response for now
+    return jsonify({'transcript': 'this is where the transcript will be written'})
+
+    
+
+
+# API endpoint to receive audio file
+@app.route('/make_quiz')
+def quiz():
+    # function calls
+    #bullet_points = text_to_bullet_list(text)
+
+    #expensice call i guess
+    #quiz_prompt = bullet_list_to_quiz(bullet_points)
+    final = format_quiz(quiz_prompt)
+    return(f"<p>{for_fun(final)}</p>")
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
 
