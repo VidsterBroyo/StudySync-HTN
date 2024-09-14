@@ -5,12 +5,15 @@ import cohere
 import re
 from flask import Flask, request, jsonify
 
+from flask_cors import CORS
+
 
 QUESTION_PATTERN = r"^(\d+\.\s.+?[.?]$)"  # Match the question
 OPTION_PATTERN = r"([A-D]\.\s.*)"  # Match each option
 ANSWER_MATCH = r"(\d+\.\s*[A-D]:\s*(.+))" #Match the answer
 
 app = Flask(__name__)
+CORS(app)
 quiz_prompt="""Generated Quiz:
 
 

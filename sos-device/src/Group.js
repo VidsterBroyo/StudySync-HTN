@@ -51,18 +51,25 @@ function Profile() {
         formData.append('file', selectedFile);
 
         try {
-            await axios.post('http://localhost:5000/upload', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
+            const response = await fetch("http://localhost:5000/generate-quiz", {
+                method: "GET"
             });
-            toast({
-                title: 'File uploaded successfully',
-                status: 'success',
-                duration: 3000,
-                isClosable: true,
-            });
-            setSelectedFile(null);
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log("response from fetch:", data);
+
+                toast({
+                    title: 'File uploaded successfully',
+                    status: 'success',
+                    duration: 3000,
+                    isClosable: true,
+                });
+                setSelectedFile(null);
+            } else {
+                throw new Error("Failed to fetch user metadata");
+            }
+
         } catch (error) {
             toast({
                 title: 'Upload failed',
@@ -71,8 +78,49 @@ function Profile() {
                 duration: 3000,
                 isClosable: true,
             });
+            console.error("Error fetching user metadata:", error);
         }
+
     };
+
+
+    // const onFileUpload = async () => {
+    //     if (!selectedFile) {
+    //         toast({
+    //             title: 'No file selected',
+    //             status: 'warning',
+    //             duration: 3000,
+    //             isClosable: true,
+    //         });
+    //         return;
+    //     }
+
+    //     const formData = new FormData();
+    //     formData.append('file', selectedFile);
+
+    //     try {
+    //         await axios.post('http://localhost:5000/upload', formData, {
+    //             headers: {
+    //                 'Content-Type': 'multipart/form-data',
+    //             },
+    //         });
+    //         toast({
+    //             title: 'File uploaded successfully',
+    //             status: 'success',
+    //             duration: 3000,
+    //             isClosable: true,
+    //         });
+    //         setSelectedFile(null);
+    //     } catch (error) {
+    //         toast({
+    //             title: 'Upload failed',
+    //             description: error.message,
+    //             status: 'error',
+    //             duration: 3000,
+    //             isClosable: true,
+    //         });
+    //     }
+    // };
 
 
 
