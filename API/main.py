@@ -1,5 +1,4 @@
 import boto3
-
 from botocore.exceptions import NoCredentialsError
 import cohere
 import re
@@ -17,7 +16,7 @@ ANSWER_MATCH = r"(\d+\.\s*[A-D]:\s*(.+))" #Match the answer
 
 app = Flask(__name__)
 CORS(app)
-
+#/Users/manveersohal/Documents/GitHub/group-study-app-htn/.venv/bin/python -m pip install flask 
 quiz_prompt="""Generated Quiz:
 
 
@@ -209,15 +208,16 @@ def for_fun(final):
     return string
 
 
-def start_transcription(audio_file):
+def start_transcription(temp_file_path):
     client = OpenAI(api_key="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")
 
     #audio_file= open("/Users/manveersohal/Documents/GitHub/group-study-app-htn/API/The 10 Second Rule #shorts.mp3", "rb")
-
-    transcription = client.audio.transcriptions.create(
-    model="whisper-1", 
-    file=audio_file
-    )
+    with open(temp_file_path, "rb") as audio_file:
+        transcription = client.audio.transcriptions.create(
+        model="whisper-1", 
+        file=audio_file
+        )
+    os.remove(temp_file_path)
     print(transcription.text)
     return transcription.text
 
@@ -241,6 +241,7 @@ def transcribe(video_chunk):
     # Send POST request with the video chunk
     response = requests.post(url, files={'video': ('input.mp4', video_io, 'video/mp4')})
     print(response.text)
+    
     # Return the transcription result
     return response.text
 
@@ -334,6 +335,7 @@ def upload():
    
     file = request.files['file']
 
+
     # If the user does not select a file
     if file.filename == '':
         return jsonify({'error': 'No selected file'}), 400
@@ -341,7 +343,8 @@ def upload():
     
     print("got the file!", request.files['file'])
 
-    
+    temp_file_path = os.path.join("/tmp", file.filename)
+    file.save(temp_file_path)
 
     # Save the file to a directory (if needed)
     #file_path = os.path.join('uploads', file.filename)
@@ -350,7 +353,7 @@ def upload():
     job_name = "TestTranscriptionJob"
     
     #audio file translated to transcript 
-    response = start_transcription(file)
+    response = start_transcription(temp_file_path)
 
     # Dummy response for now
     return jsonify({'transcript': response})
