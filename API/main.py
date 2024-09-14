@@ -4,14 +4,15 @@ from botocore.exceptions import NoCredentialsError
 import cohere
 import re
 from flask import Flask, request, jsonify
+from openai import OpenAI
 
+# /Users/manveersohal/Documents/GitHub/group-study-app-htn/.venv/bin/python -m pip install flask 
 
 QUESTION_PATTERN = r"^(\d+\.\s.+?[.?]$)"  # Match the question
 OPTION_PATTERN = r"([A-D]\.\s.*)"  # Match each option
 ANSWER_MATCH = r"(\d+\.\s*[A-D]:\s*(.+))" #Match the answer
 
 app = Flask(__name__)
-CORS(app)
 quiz_prompt="""Generated Quiz:
 
 
@@ -87,6 +88,7 @@ class Question:
 
     def add_answer(self, answer):
         self.answer = answer
+
 
 
 
@@ -202,23 +204,17 @@ def for_fun(final):
     return string
 
 
-#below this is AWS API Wokr
-def start_transcription(job_name, file_uri):
-    try:
-        transcribe = boto3.client('transcribe', region_name='us-west-2')
+def start_transcription(audio_file):
+    client = OpenAI(api_key="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")
 
-        response = transcribe.start_transcription_job(
-            TranscriptionJobName=job_name,
-            Media={'MediaFileUri': file_uri},
-            MediaFormat='mp4',  # Change to your media format if different
-            LanguageCode='en-US'  # Change the language code if necessary
-        )
+    #audio_file= open("/Users/manveersohal/Documents/GitHub/group-study-app-htn/API/The 10 Second Rule #shorts.mp3", "rb")
 
-        print(f"Started transcription job: {job_name}")
-        return response
-
-    except NoCredentialsError:
-        print("AWS credentials not found. Make sure they are set properly.")
+    transcription = client.audio.transcriptions.create(
+    model="whisper-1", 
+    file=audio_file
+    )
+    print(transcription.text)
+    return transcription.text
 
 
 
@@ -245,10 +241,10 @@ def upload():
     job_name = "TestTranscriptionJob"
     
     #audio file translated to transcript 
-    response = start_transcription(job_name,file.filename)
+    response = start_transcription(file)
 
     # Dummy response for now
-    return jsonify({'transcript': 'this is where the transcript will be written'})
+    return jsonify({'transcript': response})
 
     
 
