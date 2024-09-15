@@ -70,12 +70,53 @@ app.post('/get-user-metadata', async (req, res) => {
         }
 
         console.log(user.user_metadata.groups);
-        res.status(200).json({ userMetadata: user.user_metadata.groups });
+        res.status(200).json({ user_metadata: user.user_metadata.groups });
     } catch (error) {
         console.error('Error fetching user metadata:', error);
         res.status(500).json({ message: 'Failed to fetch user metadata' });
     }
 });
+
+
+app.post('/add-group', async (req, res) => {
+    console.log('adding new group');
+    const { userId, userGroups, newGroup } = req.body;
+
+
+    try {
+        // Initialize a new ManagementClient for this request
+        const management = new ManagementClient({
+            token: await getManagementApiToken(),
+            domain: domain,
+        });
+
+        // Update user metadata with the new groups
+        await management.updateUser(
+            { id: userId },
+            { user_metadata: { groups: userGroups.concat([newGroup]) } } // Ensure you update with the correct field name
+        );
+
+        // Get the last group from the list
+        const collectionName = newGroup[0]; // Use the last group's name as the collection name
+
+        // Connect to MongoDB
+        const client = await MongoClient.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
+        const db = client.db(dbName);
+
+        // Create a collection for the last group
+        await db.createCollection(collectionName); // Create the collection if it doesn't already exist
+
+        // Close the MongoDB connection
+        client.close();
+
+        res.status(200).json({ message: 'User metadata updated and collection created successfully' });
+
+    } catch (error) {
+        console.error('Error updating user metadata and creating collection:', error);
+        res.status(500).json({ message: 'Failed to update user metadata and create collection' });
+    }
+});
+
 
 
 // Route to get all documents from a collection based on groupName
@@ -94,10 +135,6 @@ app.get('/lectures/:groupName', async (req, res) => {
         const collection = db.collection(groupName); // Access collection with name = groupName
 
         const documents = await collection.find({}).toArray();
-
-        if (documents.length === 0) {
-            return res.status(404).json({ message: 'No documents found' });
-        }
 
         res.json(documents);
     } catch (error) {

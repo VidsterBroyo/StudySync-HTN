@@ -32,6 +32,8 @@ function Group() {
     const [selectedFile, setSelectedFile] = useState(null);
     const [selectedVideo, setSelectedVideo] = useState(null);
     const [isFileUploaded, setIsFileUploaded] = useState(false);
+    const [quizQuestions, setQuizQuestions] = useState([]);
+    const [answers, setAnswers] = useState({});
     const [transcribedText, setTranscribedText] = useState(""); // State for transcribed text
     const [notes, setNotes] = useState([]); // State for notes
     const [selectedNote, setSelectedNote] = useState(null); // State for selected note
@@ -40,6 +42,8 @@ function Group() {
     const [isRecording, setIsRecording] = useState(false); // State for recording status
     const [recordedBlob, setRecordedBlob] = useState(null); // State for recorded video blob
     const [mediaStream, setMediaStream] = useState(null); // Store the media stream
+    const [isQuizSubmitted, setIsQuizSubmitted] = useState(false);
+
     const { isOpen, onOpen, onClose } = useDisclosure(); // Modal controls
     const toast = useToast();
     const fileInputRef = useRef(null);
@@ -275,20 +279,34 @@ function Group() {
             let response = await axios.post('http://localhost:5000/make_quiz', {
                 transcript: selectedNote?.notes,
             });
-            
-            console.log(response.data)
-            // response = response.data
 
-            console.log('Quiz received:', response.data['questions']);
+            console.log('Quiz received:', response.data['quiz']);
+            setQuizQuestions(Object.entries(response.data['quiz']).map(([key, value]) => {
+                return {
+                    id: key,
+                    ...value
+                };
+            }))
         } catch (error) {
             console.error('Error making quiz request:', error.message);
         }
 
-        
+
     };
 
 
+    const handleQuizSubmit = () => {
+        setIsQuizSubmitted(true);
+        // Additional feedback logic could go here (e.g., checking correctness)
+    };
 
+
+    const handleAnswerChange = (questionIndex, selectedOption) => {
+        setAnswers({
+            ...answers,
+            [questionIndex]: selectedOption
+        });
+    };
 
     const startRecording = async () => {
         try {
@@ -563,20 +581,70 @@ function Group() {
             <Box bg="gray.800" p={4} color="white" textAlign="center" height="40px">
                 Footer
             </Box>
-
             <Modal isOpen={isOpen} onClose={onClose} size="lg">
                 <ModalOverlay />
                 <ModalContent maxWidth="80vw" width="80vw">
                     <ModalHeader>Note Details</ModalHeader>
                     <ModalCloseButton />
                     <ModalBody>
-                        <Text>{selectedNote?.notes}</Text>
+                        {quizQuestions.length > 0 ? (
+                            // Display quiz questions if they have clicked "Quiz Me"
+                            quizQuestions.map((q, index) => (
+                                <Box key={index} mb={6}>
+                                    <Text fontWeight="bold">{q.question}</Text>
+                                    <Flex direction="column">
+                                        {q.options.map((option, optionIndex) => {
+                                            const isSelected = answers[index] === option;
+                                            const isCorrect = option === q.answer;
+                                            const colorScheme = !isQuizSubmitted
+                                                ? isSelected ? "teal" : "gray" // Before quiz submission
+                                                : isCorrect
+                                                    ? "green"  // Correct answer
+                                                    : isSelected && !isCorrect
+                                                        ? "red"  // Incorrect selected answer
+                                                        : "gray"; // Default for unselected wrong answers
+
+                                            return (
+                                                <Button
+                                                    key={optionIndex}
+                                                    variant={isSelected ? "solid" : "outline"}
+                                                    colorScheme={colorScheme}
+                                                    onClick={() => handleAnswerChange(index, option)}
+                                                    mt={2}
+                                                    isDisabled={isQuizSubmitted} // Disable buttons after submitting
+                                                >
+                                                    {option}
+                                                </Button>
+                                            );
+                                        })}
+                                    </Flex>
+                                </Box>
+                            ))
+                        ) : (
+                            // Display note details when the modal is first opened
+                            <Text>{selectedNote?.notes}</Text>
+                        )}
                     </ModalBody>
                     <ModalFooter>
-                        <Button colorScheme="blue" onClick={handleQuizMeClick}>Quiz Me</Button>
+                        {quizQuestions.length > 0 ? (
+                            // Show Submit button if quiz is displayed
+                            <>
+                                {!isQuizSubmitted ? (
+                                    <Button colorScheme="teal" onClick={handleQuizSubmit}>
+                                        Submit Quiz
+                                    </Button>
+                                ) : (
+                                    <Text fontWeight="bold" color="green.500">Quiz Submitted!</Text>
+                                )}
+                            </>
+                        ) : (
+                            // "Quiz Me" button before the quiz starts
+                            <Button colorScheme="blue" onClick={handleQuizMeClick}>Quiz Me</Button>
+                        )}
                     </ModalFooter>
                 </ModalContent>
             </Modal>
+
         </Flex>
     );
 }

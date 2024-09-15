@@ -51,8 +51,8 @@ function Profile() {
 
             if (response.ok) {
                 const data = await response.json();
-                setUserGroups(data.userMetadata.groups);
-                console.log("response from fetch:", data.userMetadata.groups);
+                setUserGroups(data.user_metadata);
+                console.log("response from fetch:", data.user_metadata);
             } else {
                 throw new Error("Failed to fetch user metadata");
             }
@@ -69,6 +69,10 @@ function Profile() {
 
     async function handleAddGroup() {
         try {
+            const newGroup = [newGroupName, newGroupImage];
+            setUserGroups(prevGroups => prevGroups.concat([newGroup]));
+
+
             const response = await fetch("http://localhost:3001/add-group", {
                 method: "POST",
                 headers: {
@@ -76,7 +80,8 @@ function Profile() {
                 },
                 body: JSON.stringify({
                     userId: user.sub,
-                    userGroups
+                    userGroups: userGroups,
+                    newGroup: [newGroupName, newGroupImage]
                 }),
             });
             if (response.ok) {
@@ -85,7 +90,7 @@ function Profile() {
                 throw new Error("Failed to update profile");
             }
 
-            setUserGroups([...userGroups, [newGroupName, newGroupImage]]);
+            
             onClose();
             setNewGroupName('');
             setNewGroupImage('');
@@ -148,8 +153,8 @@ function Profile() {
                     Which class shall you be summarizing today?
                 </Text>
 
-                <SimpleGrid columns={[1, 2, 3]} spacing={10} width="100%">
                     <Wrap spacing={"10px"} mt={4}>
+
                         {userGroups.map((group, index) => (
                             <WrapItem key={index}>
                                 <Box
@@ -218,7 +223,6 @@ function Profile() {
                             </Box>
                         </WrapItem>
                     </Wrap>
-                </SimpleGrid>
             </VStack>
 
             {/* Modal for Adding a New Group */}
