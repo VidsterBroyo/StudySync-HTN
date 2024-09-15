@@ -119,7 +119,19 @@ Uses cohere's API to create the quiz
 """
 def bullet_list_to_quiz(text):
     prompt = f"""
-    Based on the following content, create a multiple-choice quiz with as many questions and 4 options each. Provide the correct answers at the end. Dont add extra text just the quiz
+    Based on the following content, create a multiple-choice quiz. 
+    - Each question should be numbered (1., 2., etc.).
+    - Each question should have up to 4 answer options, labeled A., B., C., and D.
+    - Provide the correct answer after each question.
+    - Do not include any extra text other than the questions, options, and answers.
+    - The format should be:
+
+    Question_Number. Question text?
+    A. Option 1
+    B. Option 2
+    C. Option 3
+    D. Option 4
+    Question_Number. Correct option letter. answer
 
     Content: {text}
 
@@ -154,6 +166,7 @@ def format_quiz(quiz_prompt):
 
         #if the line was a question, update the question count, and create a new Question object
         if (question):
+            print("question: ",question)
             question_count += 1
             quiz[f'Question_{question_count}'] = Question(question)
 
@@ -163,11 +176,13 @@ def format_quiz(quiz_prompt):
 
         #if the line was an option, add it to the question object's options
         if (options):
+            print("options: ",options)
             quiz[f'Question_{question_count}'].add_option(options)
 
         answers_match = re.search(ANSWER_MATCH, line)
         answer = answers_match.group(1).strip() if answers_match else None
         if (answer):
+            print("answer: ",answer)
             quiz[f'Question_{answer[0]}'].add_answer(answer[3])
 
     print("QUIZ: ", quiz)
