@@ -259,6 +259,7 @@ function Group() {
         {
           title: lectureTitle,
           notes: response.data.transcript, // Assuming the response data contains the content for the note
+          bullets: response.data.bulletpoints
         }
       );
       console.log("Note added successfully");
@@ -315,11 +316,25 @@ function Group() {
   };
 
   const handleAnswerChange = (questionIndex, selectedOption) => {
-    setAnswers({
-      ...answers,
-      [questionIndex]: selectedOption,
-    });
+    if (!Object.keys(answers).includes(questionIndex.toString())) {
+        setAnswers({
+            ...answers,
+            [questionIndex]: selectedOption,
+          });
+    }
+
   };
+
+
+  function getButtonColor (selectedAnswer, correctAnswer, questionIndex) {
+    const isSelected = answers[questionIndex] == selectedAnswer;
+
+    return isSelected ? (
+        selectedAnswer[0][0] === correctAnswer? "green" : "red"
+      ) : "gray";
+    
+  };
+
 
   const startRecording = async () => {
     try {
@@ -628,23 +643,11 @@ function Group() {
                   <Text fontWeight="bold">{q.question}</Text>
                   <Flex direction="column">
                     {q.options.map((option, optionIndex) => {
-                      const isSelected = answers[index] === option;
-                      const isCorrect = option === q.answer;
-                      const colorScheme = !isQuizSubmitted
-                        ? isSelected
-                          ? "purple"
-                          : "gray" // Before quiz submission
-                        : isCorrect
-                        ? "green" // Correct answer
-                        : isSelected && !isCorrect
-                        ? "red" // Incorrect selected answer
-                        : "gray"; // Default for unselected wrong answers
 
                       return (
                         <Button
                           key={optionIndex}
-                          variant={isSelected ? "solid" : "outline"}
-                          colorScheme={colorScheme}
+                          bg={getButtonColor(option, q.answer, index)}
                           onClick={() => handleAnswerChange(index, option)}
                           mt={2}
                           isDisabled={isQuizSubmitted} // Disable buttons after submitting
@@ -657,8 +660,18 @@ function Group() {
                 </Box>
               ))
             ) : (
+
               // Display note details when the modal is first opened
-              <Text>{selectedNote?.notes}</Text>
+              <Box>
+                <details>
+                    <summary>Full transcript</summary>
+                    <Text>{selectedNote?.notes}</Text> 
+                </details>
+                <br/>
+                <Text style={{ whiteSpace: 'pre-line' }}> {selectedNote?.bullets}</Text>
+              
+              </Box>
+
             )}
           </ModalBody>
           <ModalFooter>
