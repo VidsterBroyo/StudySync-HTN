@@ -438,15 +438,15 @@ function Group() {
                             <Text>No notes available for this group.</Text>
                         )}
                     </Box>
-
+                    
                     <Box p={4} width="50%" mx="auto">
                         <FormControl mb={4}>
-                            <FormLabel>Lecture Title</FormLabel>
+                            <FormLabel>Lecture Title (required)</FormLabel>
                             <Input
                                 type="text"
                                 value={lectureTitle}
                                 onChange={(e) => setLectureTitle(e.target.value)}
-                                placeholder="Enter lecture title"
+                                placeholder="Give your lecture a title!"
                             />
                         </FormControl>
 
@@ -578,7 +578,7 @@ function Group() {
                 </Box>
             </Flex>
             {/* Footer */}
-            <Box bg="gray.800" p={4} color="white" textAlign="center" height="40px">
+            <Box bg="gray.800" p={4} color="white" textAlign="center" height="70px">
                 Footer
             </Box>
             <Modal isOpen={isOpen} onClose={onClose} size="lg">

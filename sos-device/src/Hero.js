@@ -23,7 +23,6 @@ function Hero() {
     logout();
   };
 
-  // Function to handle the upload and quiz buttons
   const handleRedirect = () => {
     if (isAuthenticated) {
       // Redirect to the profile page
@@ -35,9 +34,19 @@ function Hero() {
   };
 
   return (
-    <>
+    <Flex
+      direction="column"
+      minH="100vh"
+      bg="#f2f2f2"
+      backgroundSize="cover"
+      backgroundPosition="center"
+    >
       {/* Navbar */}
       <Flex
+      
+        mx="10px"
+        mt="10px"
+        mb="10px"
         as="nav"
         bg="purple.400"
         p={4}
@@ -125,53 +134,61 @@ function Hero() {
         </Stack>
       </Flex>
 
-      {/* Main Content with the opaque box */}
-      <Box
-        p={6}
-        mx="15px"
-        mt="15px"
-        mb="15px"
-        bg="whiteAlpha.900" // Opaque background
-        borderRadius="lg"
-        boxShadow="none" // Removed dark shadow here
-        borderStyle="none" // Removed the border
-      >
-        <Flex minH="calc(100vh - 180px)" align="center" justify="center" bg="purple.50">
-          <Stack spacing={8} mx="auto" maxW="lg" py={12} px={6}>
-            <Stack align="center">
-              <Heading fontSize="4xl">AI Lecture Summarizer</Heading>
-              <Text fontSize="lg" color="gray.600">
-                Drag & drop your video or audio file below to get started, or click to upload.
-              </Text>
-            </Stack>
+      {/* Main Content */}
+      <Flex direction="column" flex="1" bg="#f2f2f2">
+        <Box
+          p={6}
+          mx="35px"
+          mt="35px"
+          mb="35px"
+          bg="#f3ebf4" // Opaque background
+          borderRadius="lg"
+          boxShadow="none" // Removed dark shadow here
+          borderStyle="none" // Removed the border
+        >
+          <Flex minH="calc(100vh - 180px)" align="center" justify="center">
+            <Stack spacing={8} mx="auto" maxW="lg" py={12} px={6}>
+              <Stack align="center">
+                <Heading fontSize="4xl" color="black" mb="80px">AI Lecture Summarizer</Heading>
+                <Text fontSize="lg" color="gray.600" align={'center'}>
+                  Drag & drop your video or audio file below to get started, or click to upload.
+                </Text>
+              </Stack>
 
-            {/* Upload Box */}
-            <Box
-              p={8}
-              width="100%"
-              height="200px"
-              border="2px dashed"
-              borderColor="gray.300"
-              borderRadius="md"
-              bg="white"
-              cursor="pointer"
-              onClick={handleRedirect} // Redirect to profile or login
-            >
-              <Text align="center" color="gray.600" fontSize="lg">
-                Drag & drop your file here or click to select
-              </Text>
-            </Box>
-          </Stack>
-        </Flex>
-      </Box>
+              {/* Upload Box */}
+              <Box
+                p={8}
+                width="100%"
+                height="200px"
+                border="2px dashed"
+                borderColor="gray.300"
+                borderRadius="md"
+                bg="white"
+                cursor="pointer"
+                onClick={handleRedirect} // Redirect to profile or login
+              >
+                <Text align="center" color="gray.600" fontSize="lg">
+                  Drag & drop your file here or click to select
+                </Text>
+              </Box>
+            </Stack>
+          </Flex>
+        </Box>
+      </Flex>
 
       {/* Footer */}
-      <Flex bg="gray.800" color="white" p={4} justify="center">
+      <Flex
+        bg="black"
+        color="white"
+        p={4}
+        justifyContent="center"
+        height="60px" // Set the height of the footer
+        align="center"
+      >
         <Text>© 2024 StudySync. All rights reserved.</Text>
       </Flex>
-    </>
+    </Flex>
   );
 }
 
 export default Hero;
-  
