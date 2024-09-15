@@ -9,6 +9,7 @@ import {
     Input,
     Text,
     Button,
+    Link,
     Stack,
     useToast,
     Wrap,
@@ -269,8 +270,21 @@ function Group() {
         onOpen(); // Open the modal
     };
 
-    const handleQuizMeClick = () => {
-        console.log("call api"); // Log to console or call API as needed
+    async function handleQuizMeClick() {
+        try {
+            let response = await axios.post('http://localhost:5000/make_quiz', {
+                transcript: selectedNote?.notes,
+            });
+            
+            console.log(response.data)
+            // response = response.data
+
+            console.log('Quiz received:', response.data['questions']);
+        } catch (error) {
+            console.error('Error making quiz request:', error.message);
+        }
+
+        
     };
 
 
@@ -438,7 +452,7 @@ function Group() {
                                 align="center"
                                 justify="center"
                                 p={4}
-                                height="200px"
+                                height="325px"
                                 border={`2px dashed ${isFileUploaded ? 'teal.500' : 'gray.300'}`}
                                 borderRadius="md"
                                 bg={isFileUploaded ? 'teal.100' : 'whiteAlpha.800'}

@@ -4,7 +4,11 @@ import Profile from "./Profile.js";
 import Group from "./Group.js";
 import { useAuth0 } from "@auth0/auth0-react";
 import { Text } from "@chakra-ui/react";
+
 import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
+
+
+
 
 export default function App() {
   const { isLoading, isAuthenticated } = useAuth0();
@@ -16,7 +20,7 @@ export default function App() {
       </div>
     );
   }
-
+  
   if (isAuthenticated) {
     return (
       <Router>
