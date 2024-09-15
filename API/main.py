@@ -120,7 +120,12 @@ Gets a string of text and converts it into bullet points of key ideas
 
 Uses cohere's API to summarize the text
 """
+
 def text_to_bullet_list(text):
+    print(len(text))
+    if(len(text) < 250):
+        return 
+    
     response = co.summarize(
         text=text,
         format="bullets",
@@ -141,6 +146,8 @@ def bullet_list_to_quiz(text):
     - The answer should just be the correct letter
     - Do not include any extra text other than the questions, options, and answers.
     - The format should be strictly followed
+    - always end the questions with a punctuation such as , . ? :
+    - try to make around 5 questions
     - The format should be:
 
     1. Question text
@@ -360,6 +367,11 @@ def capture_and_transcribe_live():
 
 ########################
 
+# def createBulletList(bullet_points):
+#     bulletList = []
+#     lines = bullet_points.split('\n')
+#     print(lines)
+#     return lines
 
 
 @app.route('/upload', methods=['POST'])
@@ -390,6 +402,13 @@ def upload():
     response = start_transcription(temp_file_path)
     bullet_points = text_to_bullet_list(response)
 
+    #turns into a list of points
+    #bullet_points = createBulletList(bullet_points)
+
+    if(bullet_points == None):
+       return jsonify({'transcript': response, 'bulletpoints':["DO NOT GENERATE A QUIZ"]})
+    
+
     # Dummy response for now
     return jsonify({'transcript': response,'bulletpoints':bullet_points})
 
@@ -402,6 +421,7 @@ def quiz():
     data = request.get_json()
     print(data)
     transcript = data['transcript']
+    
 
     # function calls
     bullet_points = text_to_bullet_list(transcript)
