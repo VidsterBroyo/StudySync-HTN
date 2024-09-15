@@ -406,7 +406,6 @@ function Group() {
         <Heading
           size="2xl"
           textAlign="center"
-          fontFamily="bronte bold"
           fontWeight="bold"
         >
           {groupName}
