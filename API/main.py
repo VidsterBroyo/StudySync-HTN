@@ -10,9 +10,9 @@ import io
 from flask_cors import CORS
 
 
-QUESTION_PATTERN = r"^(\d+\.\s.+?[.?]$)"  # Match the question
-OPTION_PATTERN = r"([A-D]\.\s.*)"  # Match each option
-ANSWER_MATCH = r"(\d+\.\s*[A-D]:\s*(.+))" #Match the answer
+QUESTION_PATTERN = r"^(\d+\.\s(?![A-D]\.).+?[.?,:]$)"  # Match the question
+OPTION_PATTERN = r"^([A-D]\.\s.+)$"  # Match each option
+ANSWER_MATCH = r"Answer:\s*([A-D])" #Match the answer
 
 app = Flask(__name__)
 CORS(app)
@@ -85,7 +85,7 @@ class Question:
 
 
     def __str__(self):
-        return f'({self.question}, {self.options})'
+        return f'({self.question}, {self.options},{self.answer})'
 
     def add_option(self,option):
         self.options.append(option)
@@ -122,16 +122,18 @@ def bullet_list_to_quiz(text):
     Based on the following content, create a multiple-choice quiz. 
     - Each question should be numbered (1., 2., etc.).
     - Each question should have up to 4 answer options, labeled A., B., C., and D.
-    - Provide the correct answer after each question.
+    - Provide the correct answer after each question. 
+    - The answer should just be the correct letter
     - Do not include any extra text other than the questions, options, and answers.
+    - The format should be strictly followed
     - The format should be:
 
-    Question_Number. Question text?
+    1. Question text
     A. Option 1
     B. Option 2
     C. Option 3
     D. Option 4
-    Question_Number. Correct option letter. answer
+    Answer: (this would be the letter).
 
     Content: {text}
 
@@ -161,6 +163,7 @@ def format_quiz(quiz_prompt):
     for line in lines:
 
         #identifies if the line is a question and stores it
+        line = line.strip()
         question_match = re.search(QUESTION_PATTERN, line)
         question = question_match.group(1).strip() if question_match else None
 
@@ -183,9 +186,8 @@ def format_quiz(quiz_prompt):
         answer = answers_match.group(1).strip() if answers_match else None
         if (answer):
             print("answer: ",answer)
-            quiz[f'Question_{answer[0]}'].add_answer(answer[3])
+            quiz[f'Question_{question_count}'].add_answer(answer[0])
 
-    print("QUIZ: ", quiz)
     return quiz
 
 
