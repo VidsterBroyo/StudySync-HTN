@@ -150,7 +150,7 @@ app.get('/lectures/:groupName', async (req, res) => {
 // Route to add a new note to a group's collection
 app.post('/lectures/:groupName', async (req, res) => {
     const { groupName } = req.params;
-    const { title, notes } = req.body;
+    const { title, notes, bullets } = req.body;
 
     if (!groupName || !title || !notes) {
         return res.status(400).json({ error: 'Group name, title, and notes are required' });
@@ -163,7 +163,7 @@ app.post('/lectures/:groupName', async (req, res) => {
         const db = client.db(dbName);
         const collection = db.collection(groupName); // Access collection with name = groupName
 
-        const newNote = { title, notes, createdAt: new Date() }; // Adding createdAt for timestamp
+        const newNote = { title, notes, bullets, createdAt: new Date() }; 
         const result = await collection.insertOne(newNote);
 
         res.status(201).json({ message: 'Note added successfully', noteId: result.insertedId });

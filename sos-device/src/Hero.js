@@ -147,10 +147,10 @@ function Hero() {
           borderStyle="none" // Removed the border
         >
           <Flex minH="calc(100vh - 180px)" align="center" justify="center">
-            <Stack spacing={8} mx="auto" maxW="lg" py={12} px={6}>
+            <Stack spacing={8} mx="auto" maxW="2xl" py={12} px={6}>
               <Stack align="center">
-                <Heading fontSize="4xl" color="black" mb="80px">AI Lecture Summarizer</Heading>
-                <Text fontSize="lg" color="gray.600" align={'center'}>
+                <Heading fontSize="4xl" align="center" width="80%" color="black" mb="80px">A collaborative studying platform powered by an AI lecture summarizer</Heading>
+                <Text fontSize="lg" width="100%" color="gray.600" align={'center'}>
                   Drag & drop your video or audio file below to get started, or click to upload.
                 </Text>
               </Stack>

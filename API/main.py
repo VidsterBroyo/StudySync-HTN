@@ -132,6 +132,8 @@ def text_to_bullet_list(text):
     )
     return response.summary
 
+
+
 """
 Gets a string of text (in bullet form) and converts it into a quiz with questions and answers
 
@@ -299,8 +301,9 @@ def balls(file_path):
         video = io.BytesIO(video_file.read())
 
     response = requests.post(url, files={'video': ('input.mp4', video, 'video/mp4')})
+    bullet_points = text_to_bullet_list(response)
 
-    return(response.text)
+    return jsonify({'transcript': response,'bulletpoints':bullet_points})
 
 
 #print(balls("test.mp4"))
@@ -401,6 +404,8 @@ def upload():
     #audio file translated to transcript 
     response = start_transcription(temp_file_path)
     bullet_points = text_to_bullet_list(response)
+
+    # bullet_points = '{<br/>}'.join(bullet_points.split('\n'))
 
     #turns into a list of points
     #bullet_points = createBulletList(bullet_points)

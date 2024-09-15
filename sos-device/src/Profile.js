@@ -132,7 +132,7 @@ function Profile() {
 
             {/* Heading */}
             <Heading color="white" size="xl" mb={8} textAlign="center">
-                Your Classes
+                Your Study Groups
             </Heading>
 
             {/* Class Container */}
@@ -149,9 +149,6 @@ function Profile() {
                 height="400px"
                 border="2px dashed gray"
             >
-                <Text fontSize="xl" fontWeight="bold" color="purple.600">
-                    Which class shall you be summarizing today?
-                </Text>
 
                     <Wrap spacing={"10px"} mt={4}>
 
