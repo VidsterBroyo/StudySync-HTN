@@ -1,6 +1,10 @@
 const express = require('express');
 const { MongoClient } = require('mongodb');
-var cors = require('cors');
+const cors = require('cors');
+// const fetch = require('node-fetch'); // Ensure fetch is imported
+
+require('dotenv').config();
+
 const app = express();
 const port = 3001;
 
@@ -11,6 +15,68 @@ const dbName = 'StudyGroupLectures';
 // Middleware to parse JSON
 app.use(express.json());
 app.use(cors());
+
+const { ManagementClient } = require('auth0');
+
+const clientId = process.env.AUTH0_MANAGEMENT_CLIENT_ID;
+const clientSecret = process.env.AUTH0_MANAGEMENT_CLIENT_SECRET;
+const domain = process.env.REACT_APP_AUTH0_DOMAIN;
+
+let management;
+
+async function getManagementApiToken() {
+    const response = await fetch(`https://${domain}/oauth/token`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            client_id: clientId,
+            client_secret: clientSecret,
+            audience: `https://${domain}/api/v2/`,
+            grant_type: 'client_credentials',
+        }),
+    });
+
+    const data = await response.json();
+    return data.access_token;
+}
+
+async function initializeManagementClient() {
+    const token = await getManagementApiToken();
+    management = new ManagementClient({
+        token: token,
+        domain: domain,
+    });
+}
+
+// Initialize ManagementClient when the server starts
+initializeManagementClient().catch(err => {
+    console.error('Error initializing ManagementClient:', err);
+});
+
+
+app.post('/get-user-metadata', async (req, res) => {
+    console.log('getting user metadata');
+    const { userId } = req.body;
+
+    try {
+        // Get the user details
+        const user = await management.getUser({ id: userId });
+
+        if (!user.user_metadata) {
+            user.user_metadata = {};
+            user.user_metadata.groups = []; // list of names of groups the user is in 
+        }
+
+        console.log(user.user_metadata.groups);
+        res.status(200).json({ userMetadata: user.user_metadata.groups });
+    } catch (error) {
+        console.error('Error fetching user metadata:', error);
+        res.status(500).json({ message: 'Failed to fetch user metadata' });
+    }
+});
+
 
 // Route to get all documents from a collection based on groupName
 app.get('/lectures/:groupName', async (req, res) => {
@@ -28,7 +94,7 @@ app.get('/lectures/:groupName', async (req, res) => {
         const collection = db.collection(groupName); // Access collection with name = groupName
 
         const documents = await collection.find({}).toArray();
-        
+
         if (documents.length === 0) {
             return res.status(404).json({ message: 'No documents found' });
         }
@@ -43,7 +109,6 @@ app.get('/lectures/:groupName', async (req, res) => {
         }
     }
 });
-
 
 // Route to add a new note to a group's collection
 app.post('/lectures/:groupName', async (req, res) => {

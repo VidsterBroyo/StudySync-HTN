@@ -93,6 +93,21 @@ class Question:
     def add_answer(self, answer):
         self.answer = answer
 
+    def to_dict(self): 
+        # Convert the object to a dictionary
+        return  {
+             'question': self.question, 
+             'options': self.options, 
+             'answer': self.answer 
+             }
+
+
+
+
+
+
+
+
 
 
 
@@ -159,8 +174,10 @@ def format_quiz(quiz_prompt):
     quiz = {}
     question_count = 0
     lines = quiz_prompt.split('\n')
+    print(quiz_prompt)
 
     for line in lines:
+        
 
         #identifies if the line is a question and stores it
         line = line.strip()
