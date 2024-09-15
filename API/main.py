@@ -321,7 +321,7 @@ def capture_and_transcribe_live():
 
 
 # Run the live transcription
-capture_and_transcribe_live()
+#capture_and_transcribe_live()
 
 ########################
 
@@ -353,9 +353,10 @@ def upload():
     
     #audio file translated to transcript 
     response = start_transcription(temp_file_path)
+    bullet_points = text_to_bullet_list(response)
 
     # Dummy response for now
-    return jsonify({'transcript': response})
+    return jsonify({'transcript': response,'bulletpoints':bullet_points})
 
     
 
@@ -371,8 +372,17 @@ def quiz():
     #expensice call i guess
     quiz_prompt = bullet_list_to_quiz(bullet_points)
     final = format_quiz(quiz_prompt)
+    quiz_json = {}
+
+    for key,question in final.items():
+        quiz_json[key] = {
+            'question': question.question,
+            'options': question.options,
+            'answer': question.answer
+        }
+
     
-    return jsonify({'quiz': final})
+    return jsonify({'quiz': quiz_json})
 
 
 if __name__ == '__main__':
