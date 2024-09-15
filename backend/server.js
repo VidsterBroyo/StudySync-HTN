@@ -44,6 +44,7 @@ app.get('/lectures/:groupName', async (req, res) => {
     }
 });
 
+
 // Route to add a new note to a group's collection
 app.post('/lectures/:groupName', async (req, res) => {
     const { groupName } = req.params;

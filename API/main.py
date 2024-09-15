@@ -170,6 +170,7 @@ def format_quiz(quiz_prompt):
         if (answer):
             quiz[f'Question_{answer[0]}'].add_answer(answer[3])
 
+    print("QUIZ: ", quiz)
     return quiz
 
 
@@ -364,7 +365,9 @@ def upload():
 @app.route('/make_quiz', methods=['POST'])
 def quiz():
     data = request.get_json()
-    transcript = data.transcript
+    print(data)
+    transcript = data['transcript']
+
     # function calls
     bullet_points = text_to_bullet_list(transcript)
 
