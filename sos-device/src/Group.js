@@ -157,6 +157,7 @@ function Group() {
           {
             title: lectureTitle,
             notes: data, // Assuming the response data contains the content for the note
+            bullets: ""
           }
         );
         console.log("Note added successfully");

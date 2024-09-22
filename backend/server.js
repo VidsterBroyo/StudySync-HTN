@@ -152,10 +152,6 @@ app.post('/lectures/:groupName', async (req, res) => {
     const { groupName } = req.params;
     const { title, notes, bullets } = req.body;
 
-    if (!groupName || !title || !notes) {
-        return res.status(400).json({ error: 'Group name, title, and notes are required' });
-    }
-
     let client;
 
     try {

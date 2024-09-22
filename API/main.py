@@ -150,6 +150,7 @@ def bullet_list_to_quiz(text):
     - The format should be strictly followed
     - always end the questions with a punctuation such as , . ? :
     - try to make around 5 questions
+    - The question and the question number has to be on the same line
     - The format should be:
 
     1. Question text
@@ -161,7 +162,7 @@ def bullet_list_to_quiz(text):
 
     Content: {text}
 
-    Quiz:
+    Quiz:b  
     """
 
     # Use Cohere to generate the quiz
