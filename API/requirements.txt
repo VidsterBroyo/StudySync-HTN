@@ -1,0 +1,7 @@
+openai
+cohere
+flask
+flask_cors
+openai
+os
+python-dotenv
